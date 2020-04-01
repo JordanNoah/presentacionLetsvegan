@@ -1,4 +1,9 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:presentacion/src/singupForm.dart';
+import 'package:http/http.dart' as http;
+
 class Singup extends StatefulWidget {
   Singup({Key key}) : super(key: key);
 
@@ -8,11 +13,21 @@ class Singup extends StatefulWidget {
 
 class _SingupState extends State<Singup> {
   final GlobalKey<FormState> _emailUser = new GlobalKey();
+  final GlobalKey<ScaffoldState> _snackBarKey = new GlobalKey();
   bool _validateEmail = false;
   String email;
+  _showSnackBar(){
+    var snackBar = SnackBar(
+      content: Text("Este email ya se encuentra registrado"),
+      backgroundColor: Colors.red,
+      duration: Duration(milliseconds: 1200),
+    );
+    _snackBarKey.currentState.showSnackBar(snackBar);
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: _snackBarKey,
       body: Stack(
         children: <Widget>[
           Container(
@@ -137,7 +152,7 @@ class _SingupState extends State<Singup> {
   _checkFirst(){
     if(_emailUser.currentState.validate()){
       _emailUser.currentState.save();
-      Navigator.pushNamed(context, "singupForm");
+      _prepareToServer();
     }else{
       setState(() {
         _validateEmail = true;
@@ -155,5 +170,21 @@ class _SingupState extends State<Singup> {
     }else{
       return null;
     }
+  }
+
+  _prepareToServer(){
+    http.post("http://192.168.100.54:3002/api/checkMail",body: {
+      "email":this.email
+    }).then((result){
+      var resultDecode = jsonDecode(result.body);
+      if(resultDecode["status"]=="fail"){
+        _showSnackBar();
+      }
+      if(resultDecode["status"]=="success"){
+        Navigator.push(context, MaterialPageRoute(builder: (context)=>SingupForm(email: this.email,)));
+      }
+    }).catchError((error){
+      print(error);
+    });
   }
 }

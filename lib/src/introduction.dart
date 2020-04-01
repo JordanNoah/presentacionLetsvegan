@@ -38,7 +38,7 @@ class _IntroductionState extends State<Introduction> {
             RaisedButton(
               color: Colors.transparent,
               elevation: 0,
-              onPressed: (){},
+              onPressed: (){Navigator.pushNamed(context, "loginSing");},
               child: Text("Skip"),
             )
           ],
@@ -58,7 +58,7 @@ class _IntroductionState extends State<Introduction> {
             RaisedButton(
               color: Colors.transparent,
               elevation: 0,
-              onPressed: (){},
+              onPressed: (){Navigator.pushNamed(context, "loginSing");},
               child: Text("Skip"),
             )
           ],
@@ -78,7 +78,7 @@ class _IntroductionState extends State<Introduction> {
             RaisedButton(
               color: Colors.transparent,
               elevation: 0,
-              onPressed: (){},
+              onPressed: (){Navigator.pushNamed(context, "loginSing");},
               child: Text("Skip"),
             )
           ],

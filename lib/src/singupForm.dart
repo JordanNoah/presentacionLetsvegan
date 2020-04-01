@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
@@ -7,17 +8,32 @@ import 'package:intl/intl.dart';
 import 'package:step_progress_indicator/step_progress_indicator.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:http/http.dart' as http;
 
 
 
 class SingupForm extends StatefulWidget {
-  SingupForm({Key key}) : super(key: key);
+  final String email;
+  SingupForm({Key key, this.email}) : super(key: key);
 
   @override
-  _SingupFormState createState() => _SingupFormState();
+  _SingupFormState createState() => _SingupFormState(email);
+
 }
 
 class _SingupFormState extends State<SingupForm> {
+//imagen
+  Future<File> file;
+  String statusImage='';
+  String base64Image='';
+  File tmpFile;
+//
+  String email;
+
+  _SingupFormState(String emailInfo){
+    this.email = emailInfo;
+  }
+
   /////BOTONES DE CONTINUAR
   final GlobalKey<FormState> _passwordUser = new GlobalKey();
   bool _datosUsuariosDisabled;
@@ -43,9 +59,12 @@ class _SingupFormState extends State<SingupForm> {
   String _dietaEstilo;
   ///password
   String _password;
+  ///upload end point
+  static final String uploadEndPoint = "http://192.168.100.54:3002/api/signup";
   ///
   @override
   void initState() { 
+    print(this.email);
     super.initState();
     _datosUsuariosDisabled = true;
     _ageUp = true;
@@ -517,8 +536,7 @@ class _SingupFormState extends State<SingupForm> {
     );
   }
 
-Future<File> file;
-String status = '';
+
 
 startUpload(){}
 
@@ -555,6 +573,8 @@ startUpload(){}
                         future: file,
                         builder: (BuildContext context, AsyncSnapshot<File> snapshot){
                           if(snapshot.connectionState == ConnectionState.done && null != snapshot.data){
+                            tmpFile = snapshot.data;
+                            base64Image = base64Encode(snapshot.data.readAsBytesSync());
                             return Container(
                               width: MediaQuery.of(context).size.width,
                               height: MediaQuery.of(context).size.height,
@@ -851,11 +871,29 @@ startUpload(){}
   }
   _sendToServer(){
     if(_passwordUser.currentState.validate()){
-      
+      _prepareToServer();
     }else{
       setState(() {
         _validatePassword=true;
       });
     }
+  }
+  _prepareToServer(){
+    http.post(uploadEndPoint,body: {
+      "names": this._nombres,
+      "lasts_names":this._apellidos,
+      "bornDate":this._dateTime,
+      "gender":this._iam,
+      "interested_in":this._iLike,
+      "looking_for":this._whatmLooking,
+      "lifeStyle":this._dietaEstilo,
+      "password":this._password,
+      "email":this.email,
+      "profile_picture":this.base64Image
+    }).then((result){
+      print(result);
+    }).catchError((error){
+      print(error);
+    });
   }
 }
